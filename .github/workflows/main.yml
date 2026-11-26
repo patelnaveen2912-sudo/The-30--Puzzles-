@@ -1,0 +1,999 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>THE 30 PUZZLES</title>
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#08090d;color:#f5dfaa;font-family:Georgia,serif;touch-action:none}
+button{cursor:pointer;font-family:Georgia,serif}
+#game{position:fixed;inset:0;display:none}
+#game canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+#menu,#settings,#more,#err{position:fixed;inset:0;z-index:20;display:flex;align-items:center;justify-content:center;text-align:center;background:radial-gradient(ellipse,#292014,#08090d 75%)}
+#settings,#more,#err{display:none;background:#050609f5}
+.panel{width:min(92%,420px);max-height:92%;overflow:auto;padding:24px 19px;border:2px solid #bd9144;background:linear-gradient(145deg,#21190e,#08090d);box-shadow:0 0 35px #c18b3030}
+h1{font-size:clamp(28px,7vw,42px);letter-spacing:3px;color:#f0d18d;text-shadow:0 0 15px #c18b50}
+.goldbtn{display:block;width:100%;padding:13px;margin:10px 0;background:linear-gradient(110deg,#76501c,#f0d18a,#a16e26);border:1px solid #ffe2a0;color:#120e08;font-weight:bold;letter-spacing:1px}
+.smallbtn{padding:9px 15px;background:#20190f;border:1px solid #a67a32;color:#e7c47d;margin:5px}
+.sub{color:#a58b60;font-size:12px;letter-spacing:3px}
+#hud{position:absolute;z-index:4;top:12px;left:12px;right:12px;display:flex;justify-content:space-between;pointer-events:none}
+.hudbox{background:#08090dcc;border:1px solid #b58a3a;padding:8px 12px;font-size:13px}
+#hint{position:absolute;z-index:4;top:58px;left:50%;transform:translateX(-50%);background:#08090ddd;border:1px solid #9e783b;padding:8px 12px;font-size:12px;white-space:nowrap}
+#joystick{position:fixed;z-index:8;left:24px;bottom:30px;width:112px;height:112px;border:2px solid #c69b50;border-radius:50%;background:#c69b501c;touch-action:none}
+#stick{position:absolute;left:50%;top:50%;width:44px;height:44px;transform:translate(-50%,-50%);border-radius:50%;background:radial-gradient(circle,#f1d28b,#88602a);border:2px solid #ffe1a0}
+#use{position:fixed;z-index:9;right:25px;bottom:45px;width:75px;height:75px;border-radius:50%;border:2px solid #e4bd71;background:#33230fdd;color:#ffe2a0}
+#look{position:fixed;z-index:2;right:0;top:90px;width:58%;height:65%;touch-action:none}
+#puzzle{display:none;position:absolute;z-index:12;inset:0;background:transparent;align-items:flex-end;justify-content:center;text-align:center;overflow:auto;padding:12px 10px 11vh;pointer-events:none}
+#puzzleBox{pointer-events:auto;width:min(92%,410px);max-height:68%;overflow:auto;padding:15px 17px;background:linear-gradient(145deg,#211a10f5,#08090df5);border:2px solid #c49a4d;box-shadow:0 0 22px #000b,0 0 12px #c49a4d30;border-radius:5px}
+#puzzleBox h2{color:#f1d18d;letter-spacing:1px;margin:4px 0 8px}
+#options{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin:14px 0}
+.option{font-size:15px;padding:12px;background:#18140e;border:1px solid #b68b43;color:#f4d18b;min-height:48px}
+#answerInput{width:100%;padding:13px;background:#08090d;border:1px solid #c49a4d;color:#ffe0a0;font-size:18px;text-align:center;margin:8px 0}
+#message{min-height:25px;color:#f0ce83;font-size:13px}
+#special{margin:8px 0}
+#ttt{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;width:210px;margin:12px auto}
+.cell{height:60px;background:#17130e;border:1px solid #c69b50;color:#f5d48c;font-size:35px}
+#sequenceDisplay{font-size:26px;letter-spacing:5px;color:#ffe2a0;padding:10px}
+#lightButtons{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin:15px 0}
+.light{width:54px;height:54px;border:3px solid #eee;border-radius:50%;opacity:.35}
+#preview{position:relative;height:250px;margin:15px 0;background:#111;border:1px solid #8d6b37;overflow:hidden}
+.dragitem{position:absolute;touch-action:none;padding:10px;background:#8d682b;color:white;border:1px solid #f3d28a;border-radius:12px;font-size:11px;user-select:none}
+#dragJoy{left:12px;bottom:12px;width:80px;height:80px;border-radius:50%;display:grid;place-items:center}
+#dragUse{right:12px;bottom:20px;width:60px;height:60px;border-radius:50%;display:grid;place-items:center}
+#dragLook{right:8px;top:10px;width:90px;height:70px;display:grid;place-items:center}
+#toast{position:absolute;z-index:10;bottom:150px;left:50%;transform:translateX(-50%);padding:8px 14px;background:#08090ddd;border:1px solid #a98240;display:none;white-space:nowrap}
+#mazeGrid{display:grid;grid-template-columns:repeat(5,38px);grid-template-rows:repeat(5,38px);gap:3px;justify-content:center;margin:12px auto}
+.mazeCell{display:grid;place-items:center;background:#29231a;border:1px solid #8d6b37;color:#ffe2a0;font-size:14px}
+.mazeWall{background:#08090d;border-color:#3b3020}
+.mazePlayer{background:#8a641f;box-shadow:0 0 10px #f4cf75}
+.mazeExit{background:#25472c}
+#mazeControls{display:grid;grid-template-columns:repeat(3,58px);grid-template-rows:repeat(2,48px);gap:6px;justify-content:center;margin:10px auto}
+#mazeControls button{background:#20190f;border:1px solid #c69b50;color:#ffe2a0;font-size:25px;border-radius:5px}
+#mazeControls button:active{background:#805b23}
+</style>
+</head>
+<body>
+
+<div id="menu">
+ <div class="panel">
+  <div class="sub">A MYSTERY ESCAPE GAME</div>
+  <h1>THE 30<br>PUZZLES</h1>
+  <p>30 ROOMS • 30 MYSTERIES</p>
+  <button class="goldbtn" onclick="startGame()">START GAME</button>
+  <button class="goldbtn" onclick="openSettings()">JOYSTICK SETTINGS</button>
+  <button class="goldbtn" onclick="showMore()">MORE</button>
+ </div>
+</div>
+
+<div id="settings">
+ <div class="panel">
+  <h2>CONTROL SETTINGS</h2>
+  <p>Drag controls to place them where you want.</p>
+  <div id="preview">
+   <div id="dragJoy" class="dragitem">JOYSTICK</div>
+   <div id="dragUse" class="dragitem">USE</div>
+   <div id="dragLook" class="dragitem">LOOK</div>
+  </div>
+  <button class="smallbtn" onclick="savePositions()">SAVE POSITIONS</button>
+  <button class="smallbtn" onclick="resetPositions()">RESET</button>
+  <button class="smallbtn" onclick="closeSettings()">BACK</button>
+ </div>
+</div>
+
+<div id="more">
+ <div class="panel">
+  <div class="sub" id="moreSub">FOLLOW OUR CHANNELS</div>
+  <h1 id="moreTitle">MORE</h1>
+  <p>YouTube: Bakwas_Bandh</p>
+  <p>YouTube: Poem_Song</p>
+  <p>Instagram: AI_VIDEOS_LMT</p>
+  <button class="goldbtn" onclick="hideMore()">BACK TO MENU</button>
+ </div>
+</div>
+
+<div id="err">
+ <div class="panel">
+  <h2>GAME FAILED TO LOAD</h2>
+  <p id="errText">Check your internet connection.</p>
+  <button class="goldbtn" onclick="location.reload()">RETRY</button>
+  <button class="smallbtn" onclick="backMenu()">BACK</button>
+ </div>
+</div>
+
+<div id="game">
+ <div id="hud">
+  <div class="hudbox">ROOM <span id="roomNo">01</span> / 30</div>
+  <div class="hudbox">THE 30 PUZZLES</div>
+ </div>
+ <div id="hint">Find the table and solve the puzzle.</div>
+ <div id="look"></div>
+ <div id="joystick"><div id="stick"></div></div>
+ <button id="use" onclick="interact()">USE</button>
+ <div id="toast"></div>
+ <div id="puzzle">
+  <div id="puzzleBox">
+   <h2 id="puzzleTitle">MYSTERY</h2>
+   <p id="puzzleDesc" style="font-size:13px;color:#c6ad7e"></p>
+   <div id="special"></div>
+   <div id="options"></div>
+   <input id="answerInput" placeholder="Enter your answer" maxlength="30" autocomplete="off">
+   <button class="goldbtn" id="submitAnswer" onclick="submitPuzzle()">CHECK ANSWER</button>
+   <div id="message"></div>
+   <button class="smallbtn" onclick="closePuzzle()">CLOSE</button>
+  </div>
+ </div>
+</div>
+
+<script>
+let THREE=null;
+
+function loadScript(src){
+ return new Promise((resolve,reject)=>{
+  let s=document.createElement("script");
+  s.src=src;s.onload=resolve;s.onerror=reject;
+  document.head.appendChild(s);
+ });
+}
+
+async function ensureThree(){
+ if(window.THREE){THREE=window.THREE;return true}
+ const urls=[
+  "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js",
+  "https://cdnjs.cloudflare.com/ajax/libs/three.js/r160/three.min.js"
+ ];
+ for(const url of urls){
+  try{await loadScript(url);if(window.THREE){THREE=window.THREE;return true}}
+  catch(e){}
+ }
+ return false;
+}
+
+const $=id=>document.getElementById(id);
+let scene,camera,renderer,clock,running=false,room=1;
+let doorOpen=false,transitioning=false;
+let player={x:0,y:1.7,z:5.4,yaw:0,pitch:0};
+let doorGroup,doorLeaf,portal;
+let moveX=0,moveY=0,joyPointer=null,lookPointer=null;
+let lastLookX=0,lastLookY=0,puzzleOpen=false;
+let audioCtx=null,walkTime=0,cameraRoll=0,cameraBob=0,lastStep=0;
+let currentAnswer="",lightPattern=[],lightInput=[],lightRunToken=0;
+let tttBoard=[],tttFinished=false;
+let mazePlayer={r:4,c:0},mazeFinished=false;
+let numberSequence=[],numberTimer=null;
+let lastRenderTime=0;
+const TARGET_FRAME_TIME=1000/30;
+
+/* 30 DIFFERENT PUZZLES */
+const roomPuzzles=[
+ {type:"sequence",title:"NUMBER SEQUENCE",q:"Find the missing number: 2, 6, 12, 20, 30, ?",a:"42",o:["36","40","42","48"]},
+ {type:"tic"},
+ {type:"word",title:"SCRAMBLED WORD",q:"Unscramble these 7 letters to form one meaningful word: T E N P A S L",scramble:"TENPASL",a:"PLANETS"},
+ {type:"light"},
+ {type:"math",title:"ADVANCED CALCULATION",q:"If 8 machines make 8 items in 8 minutes, how many minutes will 16 machines take to make 16 items?",a:"8",o:["4","8","16","32"]},
+ {type:"logic",title:"LOGIC CHALLENGE",q:"A farmer has 17 sheep. All but 9 run away. How many sheep remain?",a:"9",o:["8","9","17","26"]},
+ {type:"pattern",title:"SHAPE PATTERN",q:"Complete the pattern: Triangle, Square, Pentagon, Hexagon, ?",a:"HEPTAGON",o:["OCTAGON","HEPTAGON","NONAGON","DECAGON"]},
+ {type:"numberMemory"},
+ {type:"maze"},
+ {type:"odd"},
+ {type:"code",title:"SECRET CODE",q:"If CAT = 3120 using letter positions, what is DOG?",a:"4157",o:["4157","4715","4156","4517"]},
+ {type:"math",title:"MISSING VALUE",q:"A number multiplied by 6 gives 294. What is the number?",a:"49",o:["46","47","48","49"]},
+ {type:"word",title:"SCRAMBLED WORD",q:"Unscramble these 7 letters: Y R E T S M Y",scramble:"YRETSMY",a:"MYSTERY"},
+ {type:"logic",title:"BOX PUZZLE",q:"There are 5 boxes. Each box contains 5 smaller boxes. Each smaller box contains 5 coins. How many coins are there?",a:"125",o:["25","75","100","125"]},
+ {type:"pattern",title:"NUMBER PATTERN",q:"Find the missing number: 1, 4, 9, 16, 25, ?",a:"36",o:["30","32","36","49"]},
+ {type:"sequence",title:"MULTIPLYING SEQUENCE",q:"Find the next number: 3, 9, 27, 81, ?",a:"243",o:["162","189","243","324"]},
+ {type:"logic",title:"AGE CHALLENGE",q:"A father is 4 times as old as his son. Their total age is 50. How old is the son?",a:"10",o:["8","10","12","15"]},
+ {type:"word",title:"SCRAMBLED WORD",q:"Unscramble these 7 letters: K R O W T E N",scramble:"KROWTEN",a:"NETWORK"},
+ {type:"math",title:"MULTI-STEP MATH",q:"What is (18 × 5) − (24 ÷ 3)?",a:"82",o:["78","80","82","86"]},
+ {type:"colour",title:"COLOR LOGIC",q:"A light is made by mixing red and green light. What color is produced?",a:"YELLOW",o:["PURPLE","YELLOW","BLUE","WHITE"]},
+ {type:"sequence",title:"HIDDEN SEQUENCE",q:"Find the missing number: 5, 10, 20, 40, 80, ?",a:"160",o:["120","140","160","180"]},
+ {type:"logic",title:"CLOCK CHALLENGE",q:"A clock takes 5 seconds to strike 6 times. How long will it take to strike 12 times?",a:"11",o:["10","11","12","15"]},
+ {type:"math",title:"FRACTION CHALLENGE",q:"What is 3/4 of 128?",a:"96",o:["84","92","96","108"]},
+ {type:"number",title:"MISSING NUMBER",q:"Find the missing number: 7, 14, 28, 56, ?",a:"112",o:["98","104","112","120"]},
+ {type:"pattern",title:"LETTER PATTERN",q:"Complete the pattern: B, E, I, N, T, ?",a:"A",o:["A","Z","B","C"]},
+ {type:"word",title:"SCRAMBLED WORD",q:"Unscramble these 7 letters: Y E N R U O J",scramble:"YENRUOJ",a:"JOURNEY"},
+ {type:"math",title:"POWER CHALLENGE",q:"What is 7 squared plus 6 squared?",a:"85",o:["75","81","85","91"]},
+ {type:"code",title:"DIGIT CODE",q:"A code follows this rule: 2 → 6, 3 → 12, 4 → 20, 5 → 30. What is 9?",a:"90",o:["72","81","90","99"]},
+ {type:"logic",title:"MAP CHALLENGE",q:"You face north. Turn right, then turn right again, then turn left. Which direction are you facing?",a:"EAST",o:["NORTH","SOUTH","EAST","WEST"]},
+ {type:"word",title:"FINAL SCRAMBLED WORD",q:"Unscramble these 7 letters: E C R U S T E",scramble:"ECRUSTE",a:"SECURET"},
+ {type:"final",title:"FINAL CHALLENGE",q:"Find the missing number: 2, 3, 5, 9, 17, 33, ?",a:"65",o:["49","57","65","72"]}
+];
+
+function sound(freq=440,duration=.1,type="sine",volume=.04){
+ try{
+  if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();
+  if(audioCtx.state==="suspended")audioCtx.resume();
+  let o=audioCtx.createOscillator(),g=audioCtx.createGain();
+  let now=audioCtx.currentTime;
+  o.type=type;o.frequency.setValueAtTime(freq,now);
+  g.gain.setValueAtTime(volume,now);
+  g.gain.exponentialRampToValueAtTime(.001,now+duration);
+  o.connect(g);g.connect(audioCtx.destination);
+  o.start(now);o.stop(now+duration);
+ }catch(e){}
+}
+
+function mat(color,metalness=0,roughness=.4){
+ return new THREE.MeshStandardMaterial({color,metalness,roughness});
+}
+
+function box(w,h,d,material,x,y,z){
+ let o=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),material);
+ o.position.set(x,y,z);o.castShadow=true;o.receiveShadow=true;
+ scene.add(o);return o;
+}
+
+function makeRoom(){
+ scene.clear();
+ scene.background=new THREE.Color(0x19191e);
+ scene.fog=new THREE.Fog(0x19191e,25,52);
+
+ const black=mat(0x08090d,.05,.9);
+ const gold=mat(0xd99a20,.9,.2);
+ const darkGold=mat(0x80500d,.85,.27);
+ const silver=mat(0xbfc5ce,.78,.24);
+ const floor=mat(0x17171c,.82,.13);
+
+ scene.add(new THREE.HemisphereLight(0xfff1d9,0x444454,2.1));
+ let mainLight=new THREE.PointLight(0xffe4b9,180,48);
+ mainLight.position.set(0,5.7,0);scene.add(mainLight);
+
+ for(let x of [-6,0,6]){
+  let l=new THREE.PointLight(0xffe9c9,65,22);
+  l.position.set(x,5,0);scene.add(l);
+ }
+
+ box(18,.35,20,floor,0,-.2,0);
+ for(let x=-8;x<=8;x+=2){
+  for(let z=-9;z<=9;z+=2){
+   box(1.96,.025,1.96,mat(0x292930,.72,.13),x,-.015,z);
+   box(.035,.028,1.96,darkGold,x+1,-.01,z);
+   box(1.96,.028,.035,darkGold,x,-.01,z+1);
+  }
+ }
+
+ box(7.7,7,.4,black,-5.15,3.3,-9.8);
+ box(7.7,7,.4,black,5.15,3.3,-9.8);
+ box(2.6,2.4,.4,black,0,5.8,-9.8);
+ box(18,7,.4,black,0,3.3,9.8);
+ box(.4,7,20,black,-9,3.3,0);
+ box(.4,7,20,black,9,3.3,0);
+
+ for(let x=-8;x<=8;x+=2){
+  let isGold=Math.round((x+8)/2)%2===0;
+  if(x!==-2&&x!==0&&x!==2)box(1.92,6.8,.08,isGold?gold:black,x,3.3,-9.54);
+  box(1.92,6.8,.08,isGold?gold:black,x,3.3,9.54);
+ }
+
+ for(let z=-9;z<=9;z+=2){
+  let isGold=Math.round((z+9)/2)%2===0;
+  box(.08,6.8,1.92,isGold?gold:black,-8.74,3.3,z);
+  box(.08,6.8,1.92,isGold?gold:black,8.74,3.3,z);
+ }
+
+ for(let y of [.12,6.55]){
+  if(y===.12){
+   box(7.7,.12,.18,gold,-5.15,y,-9.45);
+   box(7.7,.12,.18,gold,5.15,y,-9.45);
+  }else box(18,.12,.18,gold,0,y,-9.45);
+  box(18,.12,.18,gold,0,y,9.45);
+  box(.18,.12,20,gold,-8.65,y,0);
+  box(.18,.12,20,gold,8.65,y,0);
+ }
+
+ box(18,.3,20,silver,0,6.9,0);
+ box(3.5,.22,1.7,mat(0x151216,.65,.2),0,1.2,-2.2);
+ box(3.6,.07,1.8,darkGold,0,1.34,-2.2);
+ for(let x of [-1.45,1.45]){
+  for(let z of [-2.85,-1.55])box(.17,1.15,.17,darkGold,x,.62,z);
+ }
+
+ portal=new THREE.Mesh(new THREE.PlaneGeometry(2.58,4.58),
+  new THREE.MeshBasicMaterial({color:0x000000,side:THREE.DoubleSide}));
+ portal.position.set(0,2.3,-9.56);
+ portal.visible=false;scene.add(portal);
+
+ doorGroup=new THREE.Group();
+ doorGroup.position.set(-1.3,0,-9.48);
+ doorLeaf=new THREE.Group();
+ doorGroup.add(doorLeaf);
+ doorLeaf.position.x=1.3;
+ doorLeaf.add(new THREE.Mesh(new THREE.BoxGeometry(2.6,4.6,.28),mat(0x09090c,.35,.48)));
+
+ for(let x of [-1.1,1.1]){
+  let t=new THREE.Mesh(new THREE.BoxGeometry(.12,4.65,.34),gold);
+  t.position.set(x,2.3,0);doorLeaf.add(t);
+ }
+ for(let y of [.2,4.4]){
+  let t=new THREE.Mesh(new THREE.BoxGeometry(2.4,.12,.34),gold);
+  t.position.set(0,y,0);doorLeaf.add(t);
+ }
+ let handle=new THREE.Mesh(new THREE.SphereGeometry(.12,16,16),gold);
+ handle.position.set(.8,2.2,.22);doorLeaf.add(handle);
+ scene.add(doorGroup);
+
+ player.x=0;player.z=5.4;player.yaw=0;player.pitch=0;
+ doorOpen=false;doorGroup.visible=true;portal.visible=false;
+ camera.position.set(player.x,player.y,player.z);
+ camera.rotation.order="YXZ";
+}
+
+function initGraphics(){
+ renderer=new THREE.WebGLRenderer({antialias:false,powerPreference:"low-power",stencil:false,depth:true});
+ renderer.setPixelRatio(Math.min(devicePixelRatio,1.1));
+ renderer.setSize(innerWidth,innerHeight);
+ renderer.shadowMap.enabled=false;
+ renderer.toneMapping=THREE.ACESFilmicToneMapping;
+ renderer.toneMappingExposure=1.45;
+ $("game").insertBefore(renderer.domElement,$("game").firstChild);
+ scene=new THREE.Scene();
+ camera=new THREE.PerspectiveCamera(75,innerWidth/innerHeight,.1,100);
+ clock=new THREE.Clock();
+ makeRoom();
+}
+
+async function startGame(){
+ $("err").style.display="none";
+ if(!await ensureThree()){
+  $("errText").textContent="3D engine failed to load. Check your internet connection.";
+  $("err").style.display="flex";return;
+ }
+ $("menu").style.display="none";
+ $("more").style.display="none";
+ $("game").style.display="block";
+ applyPositions();
+
+ try{
+  if(!renderer)initGraphics();
+  else{
+   renderer.setPixelRatio(Math.min(devicePixelRatio,1.1));
+   renderer.setSize(innerWidth,innerHeight);
+   makeRoom();
+  }
+  room=1;updateRoomText();
+  $("hint").textContent="Find the table and solve the puzzle.";
+  running=true;transitioning=false;lastRenderTime=0;
+  clock.start();animate();
+ }catch(e){
+  $("errText").textContent="Unable to start the game: "+e.message;
+  $("err").style.display="flex";
+ }
+}
+
+function updateRoomText(){
+ $("roomNo").textContent=String(room).padStart(2,"0");
+}
+
+function collides(x,z){
+ return x>-1.95&&x<1.95&&z<-1.15&&z>-3.25;
+}
+
+function animate(){
+ if(!running)return;
+ requestAnimationFrame(animate);
+ const now=performance.now();
+ if(now-lastRenderTime<TARGET_FRAME_TIME)return;
+ lastRenderTime=now;
+ let dt=Math.min(clock.getDelta(),.04);
+
+ if(!transitioning&&!puzzleOpen){
+  let speed=3.2;
+  let dx=(Math.sin(player.yaw)*moveY+Math.cos(player.yaw)*moveX)*speed*dt;
+  let dz=(Math.cos(player.yaw)*moveY-Math.sin(player.yaw)*moveX)*speed*dt;
+  let nx=player.x+dx,nz=player.z-dz;
+
+  if(nx>-8&&nx<8&&!collides(nx,player.z))player.x=nx;
+  if(nz>-8.8&&nz<8.5&&!collides(player.x,nz))player.z=nz;
+
+  if(player.z<-7.65&&(!doorOpen||Math.abs(player.x)>1.25))player.z=-7.65;
+  if(doorOpen&&player.z<-8.65&&Math.abs(player.x)<1.25)nextRoom();
+
+  if(Math.abs(moveX)+Math.abs(moveY)>.12){
+   walkTime+=dt*7.5;
+   cameraRoll=THREE.MathUtils.lerp(cameraRoll,Math.sin(walkTime)*.035-moveX*.025,dt*6);
+   cameraBob=THREE.MathUtils.lerp(cameraBob,Math.abs(Math.sin(walkTime*2))*.035,dt*7);
+   if(performance.now()-lastStep>400){sound(85,.05,"triangle",.012);lastStep=performance.now()}
+  }else{
+   cameraRoll=THREE.MathUtils.lerp(cameraRoll,0,dt*5);
+   cameraBob=THREE.MathUtils.lerp(cameraBob,0,dt*5);
+  }
+ }
+ camera.position.set(player.x,player.y+cameraBob,player.z);
+ camera.rotation.set(player.pitch,player.yaw,cameraRoll,"YXZ");
+ renderer.render(scene,camera);
+}
+
+function nextRoom(){
+ if(transitioning)return;
+ transitioning=true;sound(100,.5,"sawtooth",.05);
+ $("game").style.transition="opacity .5s";
+ $("game").style.opacity="0";
+
+ setTimeout(()=>{
+  if(room>=30){
+   running=false;
+   $("game").style.display="none";
+   $("game").style.opacity="1";
+   $("moreTitle").textContent="YOU ESCAPED!";
+   $("moreSub").textContent="ALL 30 PUZZLES SOLVED";
+   $("more").style.display="flex";
+   transitioning=false;
+   return;
+  }
+  room++;
+  updateRoomText();
+  makeRoom();
+  $("game").style.opacity="1";
+  transitioning=false;
+  $("hint").textContent="Find the table and solve the puzzle.";
+ },550);
+}
+
+function interact(){
+ if(!running||transitioning)return;
+ let tableDistance=Math.hypot(player.x,player.z+2.2);
+ if(tableDistance<2.7&&Math.abs(player.x)<2.5){
+  if(!doorOpen)openPuzzle();
+  else toast("Puzzle solved! Go to the door.");
+  return;
+ }
+ if(Math.hypot(player.x,player.z+9.45)<4.5){
+  if(!doorOpen)toast("Solve the table puzzle first!");
+  else toast("Go through the open door!");
+  return;
+ }
+ toast("Go near the table and press USE.");
+}
+
+function toast(t){
+ $("toast").textContent=t;$("toast").style.display="block";
+ clearTimeout(toast.timer);
+ toast.timer=setTimeout(()=>$("toast").style.display="none",1600);
+}
+
+function setPuzzle(title,desc){
+ $("puzzleTitle").textContent=title;
+ $("puzzleDesc").textContent=desc;
+ $("special").innerHTML="";
+ $("options").innerHTML="";
+ $("message").textContent="";
+ $("answerInput").value="";
+ $("answerInput").style.display="block";
+ $("answerInput").placeholder="Enter your answer";
+ $("submitAnswer").style.display="block";
+ $("options").style.display="grid";
+ $("puzzle").style.display="flex";
+ $("submitAnswer").onclick=submitPuzzle;
+}
+
+function addOption(label){
+ let b=document.createElement("button");
+ b.type="button";
+ b.className="option";
+ b.textContent=label;
+ b.onclick=()=>{
+  if(puzzleOpen){
+   $("answerInput").value=label.substring(3).trim();
+   [...$("options").children].forEach(x=>x.style.background="#18140e");
+   b.style.background="#59401d";
+  }
+ };
+ $("options").appendChild(b);
+}
+
+function submitPuzzle(){
+ let v=$("answerInput").value.trim().toUpperCase();
+ if(!v){$("message").textContent="Enter an answer first.";return}
+ if(v===String(currentAnswer).toUpperCase())unlockDoor();
+ else{
+  $("message").textContent="Wrong answer! Try again.";
+  $("answerInput").value="";
+  sound(150,.2,"square",.025);
+ }
+}
+
+function unlockDoor(){
+ if(doorOpen)return;
+ $("message").textContent="Correct answer! The door is open.";
+ doorOpen=true;
+ if(doorGroup)doorGroup.visible=false;
+ if(portal)portal.visible=true;
+ sound(523,.12);
+ setTimeout(()=>sound(659,.12),130);
+ setTimeout(()=>sound(784,.25),260);
+ $("hint").textContent="BLACK PORTAL OPEN! MOVE FORWARD";
+ setTimeout(closePuzzle,1100);
+}
+
+function openPuzzle(){
+ if(puzzleOpen||doorOpen)return;
+ puzzleOpen=true;
+ const p=roomPuzzles[room-1];
+
+ if(!p){
+  $("message").textContent="Puzzle data unavailable. Please retry this room.";
+  puzzleOpen=false;
+  return;
+ }
+
+ if(p.type==="tic"){ticPuzzle();return}
+ if(p.type==="light"){lightPuzzle();return}
+ if(p.type==="numberMemory"){numberMemoryPuzzle();return}
+ if(p.type==="maze"){mazePuzzle();return}
+ if(p.type==="odd"){oddPuzzle();return}
+ if(p.type==="word"){wordPuzzle(p);return}
+ fourOptions(p.title,p.q,p.a,p.o);
+}
+
+function closePuzzle(){
+ lightRunToken++;
+ if(numberTimer)clearTimeout(numberTimer);
+ $("puzzle").style.display="none";
+ puzzleOpen=false;
+}
+
+function fourOptions(title,desc,correct,choices){
+ setPuzzle(title,desc);
+ let correctIndex=choices.findIndex(v=>String(v)===String(correct));
+ if(correctIndex<0)correctIndex=0;
+ currentAnswer=String.fromCharCode(65+correctIndex);
+ choices.forEach((v,i)=>{
+  let letter=String.fromCharCode(65+i);
+  addOption(letter+". "+v);
+ });
+}
+
+/* SCRAMBLED WORD: ONE SEVEN-LETTER ANSWER ONLY */
+function wordPuzzle(p){
+ setPuzzle(p.title,p.q);
+ $("options").style.display="none";
+ $("answerInput").style.display="block";
+ $("answerInput").maxLength=7;
+ $("answerInput").placeholder="Enter the 7-letter word";
+ currentAnswer=p.a;
+ let letters=document.createElement("div");
+ letters.id="sequenceDisplay";
+ letters.textContent=p.scramble.split("").join("  ");
+ $("special").appendChild(letters);
+}
+
+/* ODD ONE OUT */
+function oddPuzzle(){
+ const sets=[
+  {q:"MERCURY • VENUS • EARTH • JUPITER",a:"EARTH",o:["MERCURY","VENUS","EARTH","JUPITER"]},
+  {q:"SQUARE • TRIANGLE • CIRCLE • CUBE",a:"CUBE",o:["SQUARE","TRIANGLE","CIRCLE","CUBE"]},
+  {q:"COPPER • IRON • GOLD • PLASTIC",a:"PLASTIC",o:["COPPER","IRON","GOLD","PLASTIC"]},
+  {q:"EAGLE • SPARROW • PENGUIN • BAT",a:"BAT",o:["EAGLE","SPARROW","PENGUIN","BAT"]},
+  {q:"KILOGRAM • METER • LITER • SECOND",a:"SECOND",o:["KILOGRAM","METER","LITER","SECOND"]}
+ ];
+ let s=sets[(room-1)%sets.length];
+ fourOptions("FIND THE ODD ONE OUT","Which item does not belong? "+s.q,s.a,s.o);
+}
+
+/* NUMBER MEMORY */
+function numberMemoryPuzzle(){
+ setPuzzle("NUMBER MEMORY","Memorize the full sequence. Then enter it exactly.");
+ $("answerInput").style.display="none";
+ $("submitAnswer").style.display="none";
+ $("options").style.display="none";
+
+ numberSequence=Array.from({length:7},()=>Math.floor(Math.random()*9)+1);
+ let display=document.createElement("div");
+ display.id="sequenceDisplay";
+ display.textContent="GET READY...";
+ $("special").appendChild(display);
+
+ let input=document.createElement("input");
+ input.id="memoryInput";
+ input.placeholder="Enter the sequence";
+ input.maxLength=7;
+ input.inputMode="numeric";
+ input.style.cssText="width:100%;padding:13px;background:#08090d;border:1px solid #c49a4d;color:#ffe0a0;font-size:20px;text-align:center;margin:8px 0;display:none";
+ $("special").appendChild(input);
+
+ let check=document.createElement("button");
+ check.className="goldbtn";
+ check.textContent="CHECK ANSWER";
+ check.style.display="none";
+ $("special").appendChild(check);
+
+ let retry=document.createElement("button");
+ retry.className="smallbtn";
+ retry.textContent="SHOW AGAIN";
+ retry.style.display="none";
+ $("special").appendChild(retry);
+
+ numberTimer=setTimeout(()=>{
+  if(!puzzleOpen)return;
+  display.textContent=numberSequence.join(" ");
+  sound(600,.15);
+  numberTimer=setTimeout(()=>{
+   if(!puzzleOpen)return;
+   display.textContent="NOW ENTER IT FROM MEMORY!";
+   input.style.display="block";
+   check.style.display="block";
+   retry.style.display="inline-block";
+   input.focus();
+  },2200);
+ },500);
+
+ retry.onclick=()=>{
+  display.textContent=numberSequence.join(" ");
+  input.style.display="none";check.style.display="none";retry.style.display="none";
+  numberTimer=setTimeout(()=>{
+   if(!puzzleOpen)return;
+   display.textContent="NOW ENTER IT FROM MEMORY!";
+   input.style.display="block";check.style.display="block";retry.style.display="inline-block";
+   input.focus();
+  },2200);
+ };
+
+ check.onclick=()=>{
+  if(input.value.trim()===numberSequence.join("")){
+   unlockDoor();
+  }else{
+   $("message").textContent="Wrong sequence! Try again.";
+   input.value="";
+  }
+ };
+}
+
+/* LIGHT MEMORY */
+function lightPuzzle(){
+ setPuzzle("REMEMBER THE LIGHTS","Watch the 4-light sequence carefully. Then repeat it in exactly the same order.");
+ $("answerInput").style.display="none";
+ $("submitAnswer").style.display="none";
+ $("options").style.display="none";
+
+ const colors=["RED","BLUE","GREEN","YELLOW"];
+ const sounds=[330,440,550,660];
+ lightPattern=Array.from({length:5},()=>Math.floor(Math.random()*4));
+ lightInput=[];lightRunToken++;
+ let myToken=lightRunToken;
+
+ let display=document.createElement("div");
+ display.id="sequenceDisplay";display.textContent="GET READY";
+ $("special").appendChild(display);
+
+ let btns=document.createElement("div");
+ btns.id="lightButtons";
+ colors.forEach((color,i)=>{
+  let b=document.createElement("button");
+  b.className="light";
+  b.style.background=["#e33","#28f","#2c5","#ec3"][i];
+  b.title=color;b.onclick=()=>lightTap(i);
+  btns.appendChild(b);
+ });
+ $("special").appendChild(btns);
+
+ async function showPattern(){
+  display.textContent="WATCH THE LIGHTS CAREFULLY";
+  await new Promise(r=>setTimeout(r,500));
+  for(let i of lightPattern){
+   if(myToken!==lightRunToken)return;
+   let b=btns.children[i];b.style.opacity="1";
+   sound(sounds[i],.25);
+   await new Promise(r=>setTimeout(r,550));
+   b.style.opacity=".25";
+   await new Promise(r=>setTimeout(r,180));
+  }
+  if(myToken===lightRunToken)display.textContent="YOUR TURN!";
+ }
+ showPattern();
+}
+
+function lightTap(i){
+ if(lightInput.length>=lightPattern.length||!$("lightButtons")||!$("lightButtons").children.length)return;
+ lightInput.push(i);
+ let display=$("sequenceDisplay");
+ let buttons=[...$("lightButtons").children];
+ buttons.forEach(b=>b.style.opacity=".25");
+ buttons[i].style.opacity="1";
+ display.textContent=["RED","BLUE","GREEN","YELLOW"][i];
+ sound([330,440,550,660][i],.2);
+
+ if(lightInput.length===lightPattern.length){
+  setTimeout(()=>{
+   if(lightInput.every((v,j)=>v===lightPattern[j]))unlockDoor();
+   else{
+    $("message").textContent="Wrong sequence! Try again.";
+    let retry=document.createElement("button");
+    retry.className="smallbtn";retry.textContent="TRY AGAIN";
+    retry.onclick=()=>{
+     lightInput=[];
+     buttons.forEach(b=>b.style.opacity=".25");
+     display.textContent="YOUR TURN!";
+     $("message").textContent="";
+    };
+    $("special").appendChild(retry);
+   }
+  },350);
+ }
+}
+
+/* TIC TAC TOE - SAME GAMEPLAY */
+function ticPuzzle(){
+ setPuzzle("TIC TAC TOE","You are X and the computer is O. You go first. Win to open the door.");
+ $("answerInput").style.display="none";
+ $("submitAnswer").style.display="none";
+ $("options").style.display="none";
+ tttBoard=Array(9).fill("");tttFinished=false;
+
+ let grid=document.createElement("div");grid.id="ttt";
+ for(let i=0;i<9;i++){
+  let b=document.createElement("button");
+  b.className="cell";b.onclick=()=>tttMove(i);
+  grid.appendChild(b);
+ }
+ $("special").appendChild(grid);
+ let reset=document.createElement("button");
+ reset.className="smallbtn";reset.textContent="PLAY AGAIN";
+ reset.onclick=resetTic;$("special").appendChild(reset);
+}
+
+function winner(board,p){
+ const lines=[[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+ return lines.some(line=>line.every(i=>board[i]===p));
+}
+
+function tttMove(i){
+ if(tttFinished||tttBoard[i])return;
+ tttBoard[i]="X";$("ttt").children[i].textContent="X";
+ if(winner(tttBoard,"X")){tttFinished=true;unlockDoor();return}
+ if(tttBoard.every(Boolean)){
+  $("message").textContent="IT'S A DRAW! Play again.";
+  tttFinished=true;return;
+ }
+ $("message").textContent="COMPUTER'S TURN...";
+ setTimeout(()=>{
+  if(tttFinished)return;
+  let empty=tttBoard.map((v,i)=>v===""?i:-1).filter(i=>i>=0);
+  if(!empty.length)return;
+  let move=-1;
+  for(let n of empty){
+   let b=[...tttBoard];b[n]="O";
+   if(winner(b,"O")){move=n;break}
+  }
+  if(move<0){
+   for(let n of empty){
+    let b=[...tttBoard];b[n]="X";
+    if(winner(b,"X")){move=n;break}
+   }
+  }
+  if(move<0)move=empty[Math.floor(Math.random()*empty.length)];
+  tttBoard[move]="O";$("ttt").children[move].textContent="O";
+  if(winner(tttBoard,"O")){
+   $("message").textContent="COMPUTER WON! Play again.";
+   tttFinished=true;
+  }else if(tttBoard.every(Boolean)){
+   $("message").textContent="IT'S A DRAW! Play again.";
+   tttFinished=true;
+  }else $("message").textContent="Your turn!";
+ },500);
+}
+
+function resetTic(){
+ tttBoard=Array(9).fill("");tttFinished=false;
+ [...$("ttt").children].forEach(b=>b.textContent="");
+ $("message").textContent="Your turn!";
+}
+
+/* MINI MAZE */
+const mazeMap=[
+ [0,1,0,0,0],
+ [0,1,0,1,0],
+ [0,0,0,1,0],
+ [1,1,0,0,0],
+ [0,0,0,1,0]
+];
+
+function mazePuzzle(){
+ setPuzzle("MINI MAZE","Guide the yellow player to the EXIT using the arrow buttons.");
+ $("answerInput").style.display="none";
+ $("submitAnswer").style.display="none";
+ $("options").style.display="none";
+ mazePlayer={r:4,c:0};mazeFinished=false;
+ let grid=document.createElement("div");
+ grid.id="mazeGrid";$("special").appendChild(grid);
+ drawMaze();
+
+ let controls=document.createElement("div");
+ controls.id="mazeControls";
+ controls.innerHTML=`
+  <span></span>
+  <button type="button" onclick="moveMaze(-1,0)">⬆️</button>
+  <span></span>
+  <button type="button" onclick="moveMaze(0,-1)">⬅️</button>
+  <button type="button" onclick="moveMaze(1,0)">⬇️</button>
+  <button type="button" onclick="moveMaze(0,1)">➡️</button>
+ `;
+ $("special").appendChild(controls);
+}
+
+function drawMaze(){
+ let grid=$("mazeGrid");
+ if(!grid)return;
+ grid.innerHTML="";
+ for(let r=0;r<5;r++){
+  for(let c=0;c<5;c++){
+   let cell=document.createElement("div");
+   cell.className="mazeCell";
+   if(mazeMap[r][c]===1){cell.classList.add("mazeWall");cell.textContent="■"}
+   if(r===0&&c===4){cell.classList.add("mazeExit");cell.textContent="EXIT"}
+   if(mazePlayer.r===r&&mazePlayer.c===c){
+    cell.className="mazeCell mazePlayer";cell.textContent="YOU";
+   }
+   grid.appendChild(cell);
+  }
+ }
+}
+
+function moveMaze(dr,dc){
+ if(mazeFinished||!puzzleOpen)return;
+ let nr=mazePlayer.r+dr,nc=mazePlayer.c+dc;
+ if(nr<0||nr>4||nc<0||nc>4)return;
+ if(mazeMap[nr][nc]===1){sound(130,.08,"square",.025);return}
+ mazePlayer={r:nr,c:nc};
+ drawMaze();sound(380,.06,"sine",.025);
+ if(nr===0&&nc===4){
+  mazeFinished=true;
+  $("message").textContent="EXIT FOUND! THE DOOR IS OPEN.";
+  unlockDoor();
+ }
+}
+
+/* JOYSTICK */
+const joy=$("joystick"),stick=$("stick");
+joy.addEventListener("pointerdown",e=>{
+ joyPointer=e.pointerId;joy.setPointerCapture(e.pointerId);moveJoy(e);
+});
+joy.addEventListener("pointermove",e=>{
+ if(e.pointerId===joyPointer)moveJoy(e);
+});
+function moveJoy(e){
+ let r=joy.getBoundingClientRect();
+ let x=e.clientX-r.left-r.width/2;
+ let y=e.clientY-r.top-r.height/2;
+ let max=r.width*.32,len=Math.hypot(x,y);
+ if(len>max){x=x/len*max;y=y/len*max}
+ stick.style.left=`calc(50% + ${x}px)`;
+ stick.style.top=`calc(50% + ${y}px)`;
+ moveX=x/max;moveY=-y/max;
+}
+function releaseJoy(e){
+ if(e.pointerId===joyPointer){
+  joyPointer=null;moveX=moveY=0;
+  stick.style.left="50%";stick.style.top="50%";
+ }
+}
+joy.addEventListener("pointerup",releaseJoy);
+joy.addEventListener("pointercancel",releaseJoy);
+
+/* CAMERA LOOK */
+$("look").addEventListener("pointerdown",e=>{
+ if(puzzleOpen)return;
+ lookPointer=e.pointerId;lastLookX=e.clientX;lastLookY=e.clientY;
+ $("look").setPointerCapture(e.pointerId);
+});
+$("look").addEventListener("pointermove",e=>{
+ if(e.pointerId!==lookPointer)return;
+ let dx=e.clientX-lastLookX,dy=e.clientY-lastLookY;
+ lastLookX=e.clientX;lastLookY=e.clientY;
+ player.yaw-=dx*.004;
+ player.pitch=Math.max(-1.15,Math.min(1.15,player.pitch-dy*.004));
+});
+function endLook(e){if(e.pointerId===lookPointer)lookPointer=null}
+$("look").addEventListener("pointerup",endLook);
+$("look").addEventListener("pointercancel",endLook);
+
+/* JOYSTICK POSITION SAVING */
+function applyPositions(){
+ let p={};
+ try{p=JSON.parse(localStorage.getItem("m67positions")||"{}")}catch(e){}
+ for(let [id,key] of [["joystick","joy"],["use","use"],["look","look"]]){
+  let el=$(id),v=p[key];
+  if(!v)continue;
+  el.style.left=v.left||"";
+  el.style.right=v.right||"auto";
+  el.style.top=v.top||"";
+  el.style.bottom=v.bottom||"auto";
+ }
+}
+
+function openSettings(){
+ $("settings").style.display="flex";
+ let defaults={
+  dragJoy:{left:"12px",top:"158px"},
+  dragUse:{left:"calc(100% - 72px)",top:"170px"},
+  dragLook:{left:"calc(100% - 98px)",top:"10px"}
+ };
+ for(let id of Object.keys(defaults)){
+  $(id).style.left=defaults[id].left;
+  $(id).style.top=defaults[id].top;
+  $(id).style.right="auto";$(id).style.bottom="auto";
+ }
+ try{
+  let p=JSON.parse(localStorage.getItem("m67preview")||"{}");
+  for(let id of ["dragJoy","dragUse","dragLook"]){
+   if(p[id]){$(id).style.left=p[id].left;$(id).style.top=p[id].top}
+  }
+ }catch(e){}
+}
+
+function closeSettings(){$("settings").style.display="none"}
+
+["dragJoy","dragUse","dragLook"].forEach(id=>{
+ let el=$(id),active=false,ox=0,oy=0;
+ el.addEventListener("pointerdown",e=>{
+  active=true;
+  ox=e.clientX-el.getBoundingClientRect().left;
+  oy=e.clientY-el.getBoundingClientRect().top;
+  el.setPointerCapture(e.pointerId);e.preventDefault();
+ });
+ el.addEventListener("pointermove",e=>{
+  if(!active)return;
+  let r=$("preview").getBoundingClientRect();
+  let x=e.clientX-r.left-ox,y=e.clientY-r.top-oy;
+  x=Math.max(0,Math.min(r.width-el.offsetWidth,x));
+  y=Math.max(0,Math.min(r.height-el.offsetHeight,y));
+  el.style.left=x+"px";el.style.top=y+"px";
+  el.style.right="auto";el.style.bottom="auto";
+ });
+ el.addEventListener("pointerup",()=>active=false);
+ el.addEventListener("pointercancel",()=>active=false);
+});
+
+function savePositions(){
+ let r=$("preview").getBoundingClientRect(),preview={},actual={};
+ for(let [id,key] of [["dragJoy","joy"],["dragUse","use"],["dragLook","look"]]){
+  let el=$(id);
+  let x=el.offsetLeft/r.width*innerWidth;
+  let y=el.offsetTop/r.height*innerHeight;
+  preview[id]={left:el.style.left,top:el.style.top};
+  actual[key]={
+   left:Math.max(0,Math.min(innerWidth-el.offsetWidth,x))+"px",
+   right:"auto",
+   top:Math.max(0,Math.min(innerHeight-el.offsetHeight,y))+"px",
+   bottom:"auto"
+  };
+ }
+ localStorage.setItem("m67preview",JSON.stringify(preview));
+ localStorage.setItem("m67positions",JSON.stringify(actual));
+ applyPositions();toast("Controls saved!");
+}
+
+function resetPositions(){
+ localStorage.removeItem("m67preview");
+ localStorage.removeItem("m67positions");
+ location.reload();
+}
+
+/* MORE SCREEN */
+function showMore(){
+ $("moreTitle").textContent="MORE";
+ $("moreSub").textContent="FOLLOW OUR CHANNELS";
+ $("more").style.display="flex";
+}
+function hideMore(){
+ $("more").style.display="none";
+ $("menu").style.display="flex";
+}
+function backMenu(){
+ running=false;
+ $("err").style.display="none";
+ $("game").style.display="none";
+ $("menu").style.display="flex";
+}
+
+window.addEventListener("resize",()=>{
+ if(renderer&&camera){
+  camera.aspect=innerWidth/innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setPixelRatio(Math.min(devicePixelRatio,1.1));
+  renderer.setSize(innerWidth,innerHeight);
+ }
+});
+</script>
+</body>
+</html>
